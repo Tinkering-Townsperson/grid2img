@@ -1,1 +1,94 @@
 __version__ = "1.0.0"
+
+from os import PathLike
+from pathlib import Path
+from typing import Optional
+from PIL import Image, ImageDraw
+
+
+class ColourMap:
+	def __init__(self):
+		self.map: dict[str, tuple[int]] = {"#": (255, 255, 255), ".": (0, 0, 0)}
+
+	def populate(self, colour_dict: dict[str, tuple[int]]) -> "ColourMap":
+		self.map = colour_dict
+		return self
+
+	def add_colour(self, symbol: str, colour: tuple[int]) -> "ColourMap":
+		self.map[symbol] = colour
+		return self
+
+	def get_colour(self, symbol: str) -> tuple[int]:
+		return self.map.get(symbol, (255, 255, 255))  # Default to white if not found
+
+	@property
+	def symbols(self) -> tuple:
+		return tuple(self.map.keys())
+
+
+class Grid:
+	EXPECTED_FORMAT = "!GRIDFILE" + "".join(__version__.split("."))
+
+	def __init__(self, path: PathLike, colourmap: Optional[ColourMap] = None):
+		self.path = Path(path).resolve()
+		self.colourmap = colourmap if isinstance(colourmap, ColourMap) else ColourMap()
+
+		self.img = None
+		self.draw = None
+		self.file = None
+
+		self.grid_data = []
+		self.width, self.height = 0, 0
+
+	def __repr__(self):
+		if not all((self.width, self.height)):
+			return f"<Unparsed Grid(path='{self.path}')>"
+
+		return f"<Parsed Grid(path='{self.path}', dimensions={self.width}x{self.height})>"
+
+	def parse(self):
+		self.file = self.path.open("r")
+		data = self.file.read()
+
+		# Isolate metadata and grid data
+		self.metadata, grid = data.split("---")
+
+		# Process/validate metadata
+		header_line = self.metadata.strip().splitlines()[0]
+
+		# TODO: Expand metadata processing (e.g., colormap definitions)
+
+		if header_line == self.EXPECTED_FORMAT:
+			print("Current version, proceeding with parsing...")
+		elif header_line[0:-1] == self.EXPECTED_FORMAT[0:-1]:
+			print("Patch version mismatch, proceeding with parsing...")
+		elif header_line[0:-2] == self.EXPECTED_FORMAT[0:-2]:
+			print("Minor version mismatch, proceeding with parsing...")
+		elif header_line[0:-3] == self.EXPECTED_FORMAT[0:-3]:
+			raise ValueError("Major version mismatch, aborting...")
+		else:
+			raise ValueError("Unrecognized file format, aborting...")
+
+		self.grid_data = [line for line in grid.strip().splitlines() if line]
+		self.width = len(self.grid_data[0])
+		self.height = len(self.grid_data)
+
+		self.file.close()
+
+		return self
+
+	def render(self):
+		if not self.grid_data:
+			raise ValueError("Grid data is empty. Please parse the grid first.")
+
+		self.img = Image.new(mode="RGB", size=(self.width * 100, self.height * 100))
+		self.draw = ImageDraw.Draw(self.img)
+
+		for y in range(self.height):
+			for x in range(self.width):
+				self.draw.rectangle((x * 100, y * 100, x * 100 + 100, y * 100 + 100), fill=self.colourmap.get_colour(self.grid_data[y][x]))
+
+		return self
+
+	def export(self, output_path: PathLike, quality: int = 95):
+		self.img.save(output_path, quality=quality)
