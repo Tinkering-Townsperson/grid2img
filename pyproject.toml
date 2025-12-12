@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "grid2img"
 version = "1.0.0"
-description = ""
+description = "Revival and refactorization of my 2021 project \"Grid\". Converts a text file to a bitmap pixel art image."
 authors = ["AfterNoon PM <h2o.Drop2010+github@gmail.com>"]
 readme = "README.md"
 
