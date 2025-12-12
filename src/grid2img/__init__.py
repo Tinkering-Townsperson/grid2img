@@ -1,9 +1,12 @@
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 from os import PathLike
 from pathlib import Path
 from typing import Optional
 from PIL import Image, ImageDraw
+from string import printable
+
+printable = printable[:-6].replace("\\", "").replace("-", "").replace("=", "")  # Exclude whitespace and problematic characters
 
 
 class ColourMap:
@@ -42,11 +45,45 @@ class Grid:
 		self.width, self.height = 0, 0
 
 	@classmethod
-	def from_img(cls, img_path: PathLike, grid_path: Optional[PathLike] = None) -> "Grid":
+	def from_img(cls, img_path: PathLike, grid_path: Optional[PathLike] = None, max_size: tuple[int, int] = (128, 128)) -> "Grid":
 		if not grid_path:
 			grid_path = Path(img_path).with_suffix(".grid").resolve()
-		# Placeholder for future implementation
-		raise NotImplementedError("from_img method is not yet implemented.")
+
+		grid_content = """
+"""
+
+		reverse_colormap: dict[str, tuple[int, int, int]] = {
+		}
+
+		img = Image.open(img_path).convert("RGB").convert("P", palette=Image.ADAPTIVE, colors=len(printable))
+		img.thumbnail(max_size)
+		img.save(Path(img_path).with_stem(f"{Path(img_path).stem}_resized").with_suffix(".png"))
+
+		flat_palette = img.getpalette()
+		palette_rgbs = [tuple(flat_palette[i:i+3]) for i in range(0, 256*3, 3)]
+
+		for y in range(img.height):
+			for x in range(img.width):
+				if not palette_rgbs[img.getpixel((x, y))] in reverse_colormap and not len(reverse_colormap) >= len(printable):
+					reverse_colormap[palette_rgbs[img.getpixel((x, y))]] = printable[len(reverse_colormap)]
+				if palette_rgbs[img.getpixel((x, y))] in reverse_colormap:
+					grid_content += reverse_colormap[palette_rgbs[img.getpixel((x, y))]]
+				else:
+					grid_content += "1"
+			grid_content += "\n"
+
+		metadata = Grid.EXPECTED_FORMAT + "\n\n"
+		metadata += "SCALE=1\n"
+		metadata += "CM:\n"
+		for colour, symbol in reverse_colormap.items():
+			metadata += f"{symbol}={''.join(f'{c:02X}' for c in colour)}\n"
+
+		grid_content = metadata + "---\n" + grid_content
+
+		with open(grid_path, "w") as grid_file:
+			grid_file.write(grid_content.strip())
+
+		return cls(grid_path, ColourMap().populate({v: k for k, v in reverse_colormap.items()}))
 
 	def __repr__(self):
 		if not all((self.width, self.height)):

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "grid2img"
-version = "1.0.0"
+version = "1.2.0"
 description = "Revival and refactorization of my 2021 project \"Grid\". Converts a text file to a bitmap pixel art image."
 authors = ["AfterNoon PM <h2o.Drop2010+github@gmail.com>"]
 readme = "README.md"
@@ -19,6 +19,7 @@ pyinstaller = "^6.17.0"
 
 [tool.poetry.scripts]
 grid2img = "grid2img.__main__:main"
+img2grid = "grid2img.img2grid:img2grid"
 
 [build-system]
 requires = ["poetry-core"]

@@ -86,6 +86,7 @@ install-no-root: pyproject.toml $(VENV_DIR)/
 
 build: pyproject.toml $(VENV_DIR)/
 	poetry run pyinstaller grid2img.spec
+	poetry run pyinstaller img2grid.spec
 
 test: tests/
 	poetry run pytest $(PYTEST_ARGS)
