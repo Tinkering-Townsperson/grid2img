@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 def test_version():
-	assert __version__ == "1.0.0"
+	assert __version__ == "1.1.0"
 
 
 def test_colourmap_defaults_and_add():

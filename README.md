@@ -34,7 +34,11 @@ grid2img ./example.grid
 ### Source
 
 ```grid
-!GRIDFILE100
+!GRIDFILE110
+
+CM:
+#=00EEFF
+.=556677
 
 ---
 .........................
@@ -66,4 +70,4 @@ grid2img ./example.grid
 
 ### Render
 
-![Exported grid file](./example.png)
+![Exported grid file](./examples/example.png)

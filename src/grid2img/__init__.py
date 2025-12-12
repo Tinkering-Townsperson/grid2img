@@ -1,4 +1,4 @@
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 from os import PathLike
 from pathlib import Path
@@ -56,8 +56,6 @@ class Grid:
 		# Process/validate metadata
 		header_line = self.metadata.strip().splitlines()[0]
 
-		# TODO: Expand metadata processing (e.g., colormap definitions)
-
 		if header_line == self.EXPECTED_FORMAT:
 			print("Current version, proceeding with parsing...")
 		elif header_line[0:-1] == self.EXPECTED_FORMAT[0:-1]:
@@ -68,6 +66,16 @@ class Grid:
 			raise ValueError("Major version mismatch, aborting...")
 		else:
 			raise ValueError("Unrecognized file format, aborting...")
+
+		# TODO: Expand metadata processing (e.g., colormap definitions)
+
+		if "\nCM:\n" in self.metadata:
+			cm_section = self.metadata.split("\nCM:\n")[1]
+			for line in cm_section.strip().splitlines():
+				symbol, hexcode = line.split("=")
+				rgbcolour = tuple(int(hexcode[i:i+2], 16) for i in (0, 2, 4))
+				self.colourmap.add_colour(symbol, rgbcolour)
+				print(f"Added colour mapping: '{symbol}' -> {rgbcolour}")
 
 		self.grid_data = [line for line in grid.strip().splitlines() if line]
 		self.width = len(self.grid_data[0])
