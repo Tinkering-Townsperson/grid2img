@@ -32,6 +32,7 @@ class Grid:
 	def __init__(self, path: PathLike, colourmap: Optional[ColourMap] = None):
 		self.path = Path(path).resolve()
 		self.colourmap = colourmap if isinstance(colourmap, ColourMap) else ColourMap()
+		self.scale = 100
 
 		self.img = None
 		self.draw = None
@@ -39,6 +40,13 @@ class Grid:
 
 		self.grid_data = []
 		self.width, self.height = 0, 0
+
+	@classmethod
+	def from_img(cls, img_path: PathLike, grid_path: Optional[PathLike] = None) -> "Grid":
+		if not grid_path:
+			grid_path = Path(img_path).with_suffix(".grid").resolve()
+		# Placeholder for future implementation
+		raise NotImplementedError("from_img method is not yet implemented.")
 
 	def __repr__(self):
 		if not all((self.width, self.height)):
@@ -69,6 +77,11 @@ class Grid:
 
 		# TODO: Expand metadata processing (e.g., colormap definitions)
 
+		if "\nSCALE=" in self.metadata:
+			scale_line = [line for line in self.metadata.splitlines() if line.startswith("SCALE=")][0]
+			self.scale = int(scale_line.split("SCALE=")[1].strip())
+			print(f"Set scale to {self.scale}")
+
 		if "\nCM:\n" in self.metadata:
 			cm_section = self.metadata.split("\nCM:\n")[1]
 			for line in cm_section.strip().splitlines():
@@ -89,12 +102,17 @@ class Grid:
 		if not self.grid_data:
 			raise ValueError("Grid data is empty. Please parse the grid first.")
 
-		self.img = Image.new(mode="RGB", size=(self.width * 100, self.height * 100))
+		self.img = Image.new(mode="RGB", size=(self.width * self.scale, self.height * self.scale), color=(255, 255, 255))
 		self.draw = ImageDraw.Draw(self.img)
 
 		for y in range(self.height):
 			for x in range(self.width):
-				self.draw.rectangle((x * 100, y * 100, x * 100 + 100, y * 100 + 100), fill=self.colourmap.get_colour(self.grid_data[y][x]))
+				self.draw.rectangle((
+					x * self.scale,
+					y * self.scale,
+					x * self.scale + self.scale,
+					y * self.scale + self.scale
+					), fill=self.colourmap.get_colour(self.grid_data[y][x]))
 
 		return self
 
