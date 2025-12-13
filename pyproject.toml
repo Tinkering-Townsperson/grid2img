@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "grid2img"
-version = "1.2.0"
+version = "1.3.0"
 description = "Revival and refactorization of my 2021 project \"Grid\". Converts a text file to a bitmap pixel art image."
 authors = ["AfterNoon PM <h2o.Drop2010+github@gmail.com>"]
 readme = "README.md"
@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = ">=3.11,<3.15"
 pillow = "^12.0.0"
+textual = "^6.7.1"
 
 [tool.poetry.group.dev.dependencies]
 build = "^1.3.0"
@@ -15,6 +16,7 @@ flake8 = "^7.3.0"
 pytest = "^9.0.2"
 twine = "^6.2.0"
 wheel = "^0.45.1"
+textual-dev = "^1.8.0"
 pyinstaller = "^6.17.0"
 
 [tool.poetry.scripts]
